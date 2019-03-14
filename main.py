@@ -6,7 +6,6 @@ Created on Sun Jan 20 20:53:15 2019
 @author: dell
 """
 
-
 import numpy as np 
 import pandas as pd 
 import lightgbm as lgb
@@ -16,7 +15,6 @@ from sklearn.model_selection import KFold, RepeatedKFold
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from scipy import sparse
 import warnings
-
 import re
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -27,13 +25,10 @@ warnings.filterwarnings("ignore")
 pd.set_option('display.max_columns',None)
 pd.set_option('max_colwidth',100)
 
-
-
 train_path = './data/jinnan_round1_train_20181227.csv'
 testA_path = './data/jinnan_round1_testA_20181227.csv'
 testB_path = './data/jinnan_round1_testB_20190121.csv'
 testC_path = './data/jinnan_round1_test_20190201.csv'
-
 
 testA_ans_path = './data/jinnan_round1_ansA_20190125.csv'
 testB_ans_path = './data/jinnan_round1_ansB_20190125.csv'
@@ -41,15 +36,12 @@ testC_ans_path = './data/jinnan_round1_ans_20190201.csv'
 test_path = './data/FuSai.csv'
 test_optimize_path = './data/optimize.csv'
 
-
 train1  = pd.read_csv(train_path, encoding = 'gb18030')
 testA  = pd.read_csv(testA_path, encoding = 'gb18030')
 testB  = pd.read_csv(testB_path, encoding = 'gb18030')
 testC  = pd.read_csv(testC_path, encoding = 'gb18030')
 test  = pd.read_csv(test_path, encoding = 'gb18030')
 test_optimize  = pd.read_csv(test_optimize_path, encoding = 'gb18030')
-
-
 
 testA_ans  = pd.read_csv(testA_ans_path, encoding = 'gb18030',header=None)
 testB_ans  = pd.read_csv(testB_ans_path, encoding = 'gb18030',header=None)
@@ -59,15 +51,11 @@ testA['收率'] = testA_ans[1]
 testB['收率'] = testB_ans[1]
 testC['收率'] = testC_ans[1]
 
-
 train_all = pd.concat([train1,testA,testB,testC],axis=0,ignore_index=True)
 train = train_all
 
-
-
 min_threshold = 0.85
 max_threshold = 1.00
-
 
 ####################time_model需要的函数#########################
 def timeTranSecond(t):
@@ -109,19 +97,13 @@ def getDuration(se):
     
     return tm
 
-
-
 #############period_model需要的函数#########################
     
-
 ###将A5复制给A7，并将A8中缺失值赋为0
 def copy_time(df_train):
 
     df_train = df_train.fillna({'A2':0})#A2添0
     df_train = df_train.fillna({'A3':0})#A3用0
-    
-    
-    
     i1=[]
     i2=[]
     df_train_A8 = df_train['A8']
@@ -133,19 +115,13 @@ def copy_time(df_train):
         else:
             i2.append(i)
     
-    
     for j in i2:
         df_train['A8'][j] = 0.0
     
-    
     for j in i2:
         df_train['A7'][j] = df_train['A5'][j]
-        
-
+      
     return df_train
-    
-    
-    
     
 #将时间段分开为前后两列的子函数
 def get_two_time(se):
@@ -155,8 +131,6 @@ def get_two_time(se):
         s= 'nan:nan'
         e='nan:nan'
     return s,e
-
-
 
 ###将时间段分开为前后两列
 def Duration_split(f,f_index,df_train):
@@ -171,7 +145,6 @@ def Duration_split(f,f_index,df_train):
         temp_1.append(t_1)
         temp_2.append(t_2)    
         
-
     #在f_index列数插入名字为f_1的列，该列值为temp_1
     df_train.insert(f_index,f_1,temp_1)
     df_train.insert(f_index+1,f_2,temp_2)
@@ -188,8 +161,6 @@ def get_columns(f,df_train):
             f_index = j
     return f_index
     
-
-
 # 日期中有些输入错误和遗漏:
 def t2s(t):
     try:
@@ -211,12 +182,6 @@ def t2s(t):
     
     return (tm/60)
 
-
-
-
-        
-        
-    
 # 日期中有些输入错误和遗漏
 def t2s1(se):
     try:
@@ -248,12 +213,9 @@ def t2s1(se):
 ###后时间减去前面的时间，并处理缺失值
 def interval_missing(df_train):
     
-    
-    
     for f in ['A20_1','A20_2','A28_1','A28_2','B4_1','B4_2','B9_1','B9_2','B10_1','B10_2','B11_1','B11_2']:
         df_train[f] = df_train[f].apply(t2s1)
-    
-    
+
     #f = ['A5','A7','A9','A11','A14','A16','A20_1','A20_2','A24','A26','A28_1','A28_2','B4_1','B4_2','B5','B7','B9_1','B9_2','B10_1','B10_2','B11_1','B11_2']
     f = ['B11_2','B11_1','B10_2','B10_1','B9_2','B9_1','B7','B5','B4_2','B4_1','A28_2','A28_1','A26','A24','A20_2','A20_1','A16','A14','A11','A9','A7','A5']
     #f = ['B11_2','B11_1']
@@ -276,8 +238,7 @@ def interval_missing(df_train):
                 time_temp.append(interval)
     
         df_train[f2] = time_temp
-    
-    
+
     f_abnormal = ['A9','A11','A14','A28_1','A28_2','B4_1','B4_2','B5']
     
     for f in f_abnormal:
@@ -288,8 +249,7 @@ def interval_missing(df_train):
                 df_train_temp[i] = np.abs(df_train_mean)
     
         df_train[f] = df_train_temp
-    
-    
+
     df_train_temp = df_train['A25']
     df_train_temp[1304] = 75
 
@@ -305,9 +265,6 @@ def interval_missing(df_train):
         
     return df_train
 
-    
-
-
 #####################数据预处理###########################
 def data_preprocessing(train,test):
 
@@ -318,8 +275,7 @@ def data_preprocessing(train,test):
         train_A6[i] = round(train_A6[i])
     
     train['A6'] = train_A6
-    
-    
+
     ###train中的A12
     train_A12 = train['A12']
     for i in range(len(train_A12)):
@@ -329,16 +285,14 @@ def data_preprocessing(train,test):
             train_A12[i] = 106
 
     train['A12'] = train_A12
-    
-    
+
     ###train中的A15
     train_A15 = train['A15']
     for i in range(len(train_A15)):
         train_A15[i] = round(train_A15[i])
             
     train['A15'] = train_A15
-    
-    
+
     ###train中的A17
     train_A17 = train['A17']
     train_A17_zong = train['A17'].mode().iloc[0]    
@@ -350,8 +304,7 @@ def data_preprocessing(train,test):
             train_A17[i] = train_A17_zong
         
     train['A17'] = train_A17
-    
-    
+
     ###train中的A22
     train_A22 = train['A22']
     train_A22_zong = train['A22'].mode().iloc[0]
@@ -362,8 +315,7 @@ def data_preprocessing(train,test):
             #train_A22[i] = train_A22_zong
             
     train['A22'] = train_A22
-    
-    
+ 
     ###train中的A25
     train_A25_zong = train['A25'].mode().iloc[0]
     A25 = train['A25'].tolist()
@@ -382,7 +334,6 @@ def data_preprocessing(train,test):
             train_A25[i] = train_A25_zong
             
     train['A25'] = train_A25    
-    
     
     ###train中的B1
     train_B1 = train['B1']
@@ -414,7 +365,6 @@ def data_preprocessing(train,test):
 
     train['B8'] = train_B8        
     
-    
     ###train中的B12
     train_B12 = train['B12']
     train_B12_zong = train['B12'].mode().iloc[0]
@@ -423,8 +373,6 @@ def data_preprocessing(train,test):
             train_B12[i] = train_B12_zong
 
     train['B12'] = train_B12    
-    
-    
     
     ###train中的B14
     train_B14 = train['B14']
@@ -444,7 +392,6 @@ def data_preprocessing(train,test):
     train = train[train['收率']>= min_threshold]
     train = train[train['B14']>=350]
     train = train[train['B14']<=460]
-
 
     #################test中的数据预处理###########################
 
@@ -470,11 +417,6 @@ def data_preprocessing(train,test):
 
     return train,test
   
-
-
-
-
-
 ##################time_model################################
 
 class time_model:
@@ -488,8 +430,7 @@ class time_model:
             train_A6[i] = round(train_A6[i])
         
         train['A6'] = train_A6
-        
-        
+
         ###train中的A12
         train_A12 = train['A12']
         for i in range(len(train_A12)):
@@ -499,16 +440,14 @@ class time_model:
                 train_A12[i] = 106
     
         train['A12'] = train_A12
-        
-        
+    
         ###train中的A15
         train_A15 = train['A15']
         for i in range(len(train_A15)):
             train_A15[i] = round(train_A15[i])
                 
         train['A15'] = train_A15
-        
-        
+     
         ###train中的A17
         train_A17 = train['A17']
         train_A17_zong = train['A17'].mode().iloc[0]    
@@ -520,8 +459,7 @@ class time_model:
                 train_A17[i] = train_A17_zong
             
         train['A17'] = train_A17
-        
-
+     
         ###train中的A22
         train_A22 = train['A22']
         train_A22_zong = train['A22'].mode().iloc[0]
@@ -532,8 +470,7 @@ class time_model:
                 #train_A22[i] = train_A22_zong
                 
         train['A22'] = train_A22
-        
-        
+     
         ###train中的A25
         train_A25_zong = train['A25'].mode().iloc[0]
         A25 = train['A25'].tolist()
@@ -552,8 +489,7 @@ class time_model:
                 train_A25[i] = train_A25_zong
                 
         train['A25'] = train_A25    
-        
-        
+    
         ###train中的B1
         train_B1 = train['B1']
         train_B1_zong = train['B1'].mode().iloc[0]
@@ -583,8 +519,7 @@ class time_model:
                 train_B8[i] = train_B8_zong
     
         train['B8'] = train_B8        
-        
-        
+ 
         ###train中的B12
         train_B12 = train['B12']
         train_B12_zong = train['B12'].mode().iloc[0]
@@ -593,8 +528,6 @@ class time_model:
                 train_B12[i] = train_B12_zong
     
         train['B12'] = train_B12    
-        
-        
         
         ###train中的B14
         train_B14 = train['B14']
