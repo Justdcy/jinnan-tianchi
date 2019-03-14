@@ -1,23 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 21 09:07:49 2019
-
-@author: dell
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Feb 20 14:56:20 2019
-
-@author: dell
-"""
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Feb 16 10:37:39 2019
-
-@author: 17963
-"""
-
 
 # -*- coding: utf-8 -*-
 """
